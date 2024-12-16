@@ -1,30 +1,32 @@
 package ru.chelserg.btstrap.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import ru.chelserg.btstrap.service.UserService;
+import org.springframework.web.bind.annotation.RestController;
+import ru.chelserg.btstrap.models.User;
 
-import java.security.Principal;
+import javax.servlet.http.HttpServletRequest;
 
-@Controller
+@RestController
 @RequestMapping("/user")
 public class UserController {
-private final UserService userService;
 
-@Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
+
+    @GetMapping("/userList")
+    public ResponseEntity<User> showAuthUser(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(user);
     }
 
-    @GetMapping
-    public String userProfile(Principal principal, Model model) {
-    String username = principal.getName();
-
-    model.addAttribute("user", userService.findUserByUsername(username));
-    model.addAttribute("role", userService.findUserByUsername(username).getRoles());
-    return "user/profile";
+    @GetMapping("/logout")
+    public String logout(HttpServletRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            request.getSession().invalidate();
+        }
+        return "redirect:/login";
     }
 }

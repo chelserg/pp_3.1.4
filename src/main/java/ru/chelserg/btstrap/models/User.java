@@ -1,62 +1,52 @@
 package ru.chelserg.btstrap.models;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Size;
+import org.hibernate.annotations.Cascade;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import javax.persistence.*;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {
 
     @Id
-    @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
-
-    @NotEmpty(message = "Username should not be empty")
-    @Size(min = 1, max = 15, message = "Username should be between 1 and 15 characters")
-    @Column(name = "name", unique = true, columnDefinition = "varchar(15)")
+    @Column(name = "username", unique = true)
     private String username;
-
-    @NotEmpty(message = "Password should not be empty")
+    @Column(name = "lastName")
+    private String lastName;
+    @Column(name = "age")
+    private Long age;
+    @Column(name = "email")
+    private String email;
     @Column(name = "password")
     private String password;
-
-    @Column(name = "email", nullable = false, unique = true)
-    private String email;
-
-    @Column(name = "age", nullable = false)
-    private int age;
-
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "users_roles",
-            joinColumns = @JoinColumn(name = "users_id"),
-            inverseJoinColumns = @JoinColumn(name = "roles_id"))
+    @JoinTable(name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @Cascade(org.hibernate.annotations.CascadeType.SAVE_UPDATE)
     private Set<Role> roles;
 
-    // Конструктор по умолчанию
     public User() {
+
     }
 
-    // Конструктор со всеми параметрами
-    public User(Long id, String username, String password, String email, int age, Set<Role> roles) {
-        this.id = id;
+    public User(String username, String lastName, Long age, String email, String password, Set<Role> roles) {
         this.username = username;
-        this.password = password;
-        this.email = email;
+        this.lastName = lastName;
         this.age = age;
+        this.email = email;
+        this.password = password;
         this.roles = roles;
     }
 
-    // Геттеры и сеттеры
     public Long getId() {
         return id;
     }
@@ -69,16 +59,16 @@ public class User implements UserDetails {
         return username;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setUsername(String name) {
+        this.username = name;
     }
 
-    public String getPassword() {
-        return password;
+    public String getLastName() {
+        return lastName;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
     public String getEmail() {
@@ -89,27 +79,25 @@ public class User implements UserDetails {
         this.email = email;
     }
 
-    public int getAge() {
+    public Long getAge() {
         return age;
     }
 
-    public void setAge(int age) {
+    public void setAge(Long age) {
         this.age = age;
-    }
-
-    public Set<Role> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles.stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getRoleName()))
-                .collect(Collectors.toSet());
+        return roles.stream().map(role -> new SimpleGrantedAuthority(role.getRole())).collect(Collectors.toList());
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getShortRole() {
+        return roles.toString().substring(1, roles.toString().length() - 1);
     }
 
     @Override
@@ -132,28 +120,16 @@ public class User implements UserDetails {
         return true;
     }
 
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", email='" + email + '\'' +
-                ", age=" + age +
-                ", roles=" + roles +
-                '}';
+    public void setPassword(String password) {
+        this.password = password;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        User user = (User) o;
-        return id != null && id.equals(user.id);
+    public Set<Role> getRoles() {
+        return roles;
     }
 
-    @Override
-    public int hashCode() {
-        return id != null ? id.hashCode() : 0;
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
     }
+
 }

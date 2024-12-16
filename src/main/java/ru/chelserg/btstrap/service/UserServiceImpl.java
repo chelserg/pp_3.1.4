@@ -12,7 +12,6 @@ import ru.chelserg.btstrap.models.User;
 import ru.chelserg.btstrap.repositories.UserRepository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService, UserDetailsService {
@@ -29,57 +28,60 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
 
     @Override
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException(username));
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<User> showAllUsers() {
-        return userRepository.findAll();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public User showUserById(Long id) {
-        return userRepository.findById(id).orElse(null);
-    }
-
-    @Override
     @Transactional
     public User saveUser(User user) {
-        if (user.getId() != null) {
-            User existingUser = userRepository.findById(user.getId())
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-            if (!user.getPassword().equals(existingUser.getPassword())) {
-                user.setPassword(passwordEncoder.encode(user.getPassword()));
-            } else {
-                user.setPassword(existingUser.getPassword());
-            }
-            if (user.getRoles() == null || user.getRoles().isEmpty()) {
-                user.setRoles(existingUser.getRoles());
-            }
-        } else {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-        }
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<User> findAll() {
+        return userRepository.findAll();
+    }
+
+
+
+    @Override
     @Transactional
-    public void deleteUserById(Long id) {
+    public void deleteById(Long id) {
         userRepository.deleteById(id);
+    }
+
+
+    @Override
+    @Transactional
+    public void updateUser(Long id, User updateUser) {
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        if (updateUser.getPassword() == null || updateUser.getPassword().isEmpty()) {
+            updateUser.setPassword(existingUser.getPassword());
+        } else {
+            updateUser.setPassword(passwordEncoder.encode(updateUser.getPassword()));
+        }
+
+        if (updateUser.getRoles() == null || updateUser.getRoles().isEmpty()) {
+            updateUser.setRoles(existingUser.getRoles());
+        }
+
+        updateUser.setId(existingUser.getId());
+        updateUser.setUsername(updateUser.getUsername() != null ? updateUser.getUsername() : existingUser.getUsername());
+        updateUser.setEmail(updateUser.getEmail() != null ? updateUser.getEmail() : existingUser.getEmail());
+
+        userRepository.save(updateUser);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public User findUserByUsername(String username) {
-        Optional<User> userOptional = userRepository.findByUsername(username);
-        if (userOptional.isPresent()) {
-            return userOptional.get();
-        } else {
-            return null; // или выбросить исключение, если нужно
-        }
+    public User findById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 }

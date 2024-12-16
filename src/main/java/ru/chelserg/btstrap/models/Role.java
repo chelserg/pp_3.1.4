@@ -1,8 +1,8 @@
 package ru.chelserg.btstrap.models;
 
-import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 
+import javax.persistence.*;
 import java.util.Set;
 
 @Entity
@@ -11,24 +11,22 @@ public class Role implements GrantedAuthority {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
-
-    @Column(name = "roleName")
-    private String roleName;
-
+    @Column(name = "name", unique = true)
+    private String name;
     @Transient
     @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
     private Set<User> users;
 
-    // Конструктор без Lombok
     public Role() {
+
     }
 
-    public Role(String roleName) {
-        this.roleName = roleName;
+    public Role(String name) {
+        this.name = name;
     }
 
-    // Геттеры и сеттеры вручную
     public Long getId() {
         return id;
     }
@@ -37,12 +35,12 @@ public class Role implements GrantedAuthority {
         this.id = id;
     }
 
-    public String getRoleName() {
-        return roleName;
+    public String getRole() {
+        return name;
     }
 
-    public void setRoleName(String roleName) {
-        this.roleName = roleName;
+    public void setRole(String name) {
+        this.name = name;
     }
 
     public Set<User> getUsers() {
@@ -55,25 +53,13 @@ public class Role implements GrantedAuthority {
 
     @Override
     public String getAuthority() {
-        return getRoleName();
+        return name;
     }
 
-    // toString, equals и hashCode вручную
     @Override
     public String toString() {
-        return "Role{id=" + id + ", roleName='" + roleName + "'}";
+        return name.replace("ROLE_", "");
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Role role = (Role) o;
-        return id != null && id.equals(role.id);
-    }
 
-    @Override
-    public int hashCode() {
-        return id != null ? id.hashCode() : 0;
-    }
 }

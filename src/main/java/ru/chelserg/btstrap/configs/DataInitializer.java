@@ -2,7 +2,6 @@ package ru.chelserg.btstrap.configs;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.ApplicationListener;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,37 +31,39 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        Role adminRole = roleRepository.findByRoleName("ADMIN")
+        Role adminRole = roleRepository.findByRoleNames("ROLE_ADMIN")
                 .orElseGet(() -> {
-                    Role role = new Role("ADMIN");
+                    Role role = new Role("ROLE_ADMIN");
                     return roleRepository.save(role);
                 });
 
-        Role userRole = roleRepository.findByRoleName("USER")
+        Role userRole = roleRepository.findByRoleNames("ROLE_USER")
                 .orElseGet(() -> {
-                    Role role = new Role("USER");
+                    Role role = new Role("ROLE_USER");
                     return roleRepository.save(role);
                 });
 
         User adminUser = userRepository.findByUsername("admin")
                 .orElseGet(() -> {
                     User user = new User();
-                    user.setUsername("admin"); // login
-                    user.setAge(28);
-                    user.setEmail("admin@gmail.com");
-                    user.setPassword(passwordEncoder.encode("admin"));        // пароль
-                    user.setRoles(Set.of(adminRole, userRole));
+                      user.setUsername("admin");
+                      user.setPassword(passwordEncoder.encode("admin"));
+                      user.setRoles(Set.of(adminRole, userRole));
+                      user.setAge(28L);
+                      user.setLastName("Ivanov");
+                      user.setEmail("admin@example.com");
                     return userRepository.save(user);
                 });
 
         User regularUser = userRepository.findByUsername("user")
                 .orElseGet(() -> {
                     User user = new User();
-                    user.setUsername("user"); //login
-                    user.setAge(31);
-                    user.setEmail("user@gmail.com");
-                    user.setPassword(passwordEncoder.encode("user")); // пароль
+                    user.setUsername("user");
+                    user.setPassword(passwordEncoder.encode("user"));
                     user.setRoles(Set.of(userRole));
+                    user.setAge(24L);
+                    user.setLastName("Petrov");
+                    user.setEmail("user@example.com");
                     return userRepository.save(user);
                 });
     }

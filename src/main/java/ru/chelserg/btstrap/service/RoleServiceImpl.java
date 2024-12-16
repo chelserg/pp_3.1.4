@@ -21,14 +21,9 @@ public class RoleServiceImpl implements RoleService  {
 
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<Role> getAllRoles() {
         return roleRepository.findAll();
     }
 
-    @Override
-    @Transactional
-    public List<Role> getRolesById(List<Long> roleId) {
-        return roleRepository.findAllById(roleId);
-    }
 }
